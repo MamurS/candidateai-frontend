@@ -1698,12 +1698,31 @@
             const fileInput = document.getElementById('cv-file');
             const file = fileInput.files[0];
             
-            if (!file) return;
+            if (!file) {
+                showAlert('Please select a file to upload.', 'error');
+                return;
+            }
+            
+            // Validate file type and size
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                showAlert('Please upload a PDF, DOC, or DOCX file.', 'error');
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                showAlert('File size must be less than 10MB.', 'error');
+                return;
+            }
             
             const formData = new FormData();
             formData.append('file', file);
             
+            console.log('📄 Uploading CV:', file.name, 'Size:', (file.size / 1024).toFixed(1) + 'KB', 'Type:', file.type);
+            
             try {
+                showAlert('Uploading and analyzing CV...', 'info');
+                
                 const response = await fetch(`${API_BASE}/cv/analyze`, {
                     method: 'POST',
                     headers: {
@@ -1712,14 +1731,33 @@
                     body: formData
                 });
                 
+                console.log('CV upload response status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error('CV upload failed');
+                    let errorMsg = 'CV upload failed';
+                    try {
+                        const errorData = await response.json();
+                        console.log('CV upload error data:', errorData);
+                        if (errorData.detail) {
+                            if (typeof errorData.detail === 'string') {
+                                errorMsg = errorData.detail;
+                            } else if (Array.isArray(errorData.detail)) {
+                                errorMsg = errorData.detail.map(err => err.msg || err).join(', ');
+                            }
+                        }
+                    } catch (jsonError) {
+                        console.log('Could not parse error response as JSON');
+                        errorMsg = `CV upload failed with status ${response.status}`;
+                    }
+                    throw new Error(errorMsg);
                 }
                 
                 const result = await response.json();
+                console.log('CV analysis result:', result);
                 showAlert('CV analyzed successfully!', 'success');
                 displayCVAnalysis(result);
             } catch (error) {
+                console.error('CV upload error:', error);
                 showAlert(error.message, 'error');
             }
         }
@@ -1729,9 +1767,15 @@
                 const cvData = await makeAPICall('/cv/data');
                 if (cvData && Object.keys(cvData).length > 0) {
                     displayCVAnalysis(cvData);
+                } else {
+                    console.log('No CV data returned from server');
                 }
             } catch (error) {
-                console.log('No CV data available');
+                if (error.message.includes('404') || error.message.includes('not found')) {
+                    console.log('No CV data available (user hasn\'t uploaded CV yet)');
+                } else {
+                    console.error('Error loading CV data:', error);
+                }
             }
         }
 
@@ -1792,19 +1836,23 @@
                 const preferences = await makeAPICall('/work-preferences/');
                 if (preferences) {
                     // Fill form with existing preferences
-                    document.getElementById('expected-salary').value = preferences.expected_salary;
-                    document.getElementById('job-type').value = preferences.job_type;
-                    document.getElementById('desired-role').value = preferences.desired_role;
-                    document.getElementById('industries').value = preferences.industries;
-                    document.getElementById('willing-relocate').value = preferences.willing_to_relocate;
-                    document.getElementById('remote-preference').value = preferences.remote_work_preference;
-                    document.getElementById('years-experience').value = preferences.years_of_experience;
-                    if (preferences.notice_period) {
-                        document.getElementById('notice-period').value = preferences.notice_period;
-                    }
+                    document.getElementById('expected-salary').value = preferences.expected_salary || '';
+                    document.getElementById('job-type').value = preferences.job_type || '';
+                    document.getElementById('desired-role').value = preferences.desired_role || '';
+                    document.getElementById('industries').value = preferences.industries || '';
+                    document.getElementById('willing-relocate').value = preferences.willing_to_relocate || '';
+                    document.getElementById('remote-preference').value = preferences.remote_work_preference || '';
+                    document.getElementById('years-experience').value = preferences.years_of_experience || '';
+                    document.getElementById('notice-period').value = preferences.notice_period || '';
+                    
+                    console.log('✅ Preferences loaded successfully');
                 }
             } catch (error) {
-                console.log('No preferences found');
+                if (error.message.includes('404') || error.message.includes('not found')) {
+                    console.log('No preferences found (user hasn\'t set preferences yet)');
+                } else {
+                    console.error('Error loading preferences:', error);
+                }
             }
         }
 
