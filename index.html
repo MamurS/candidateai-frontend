@@ -1240,7 +1240,11 @@
                 cvUploadArea.classList.remove('dragover');
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
-                    cvFileInput.files = files;
+                    // Create a new FileList-like object
+                    const dt = new DataTransfer();
+                    dt.items.add(files[0]);
+                    cvFileInput.files = dt.files;
+                    console.log('📁 File dropped:', files[0].name);
                     handleCVUpload();
                 }
             });
@@ -1755,7 +1759,14 @@
                 const result = await response.json();
                 console.log('CV analysis result:', result);
                 showAlert('CV analyzed successfully!', 'success');
+                
+                // Display the analysis immediately
                 displayCVAnalysis(result);
+                
+                // Also refresh the CV data in case the structure is different
+                setTimeout(() => {
+                    loadCVData();
+                }, 1000);
             } catch (error) {
                 console.error('CV upload error:', error);
                 showAlert(error.message, 'error');
@@ -1780,21 +1791,35 @@
         }
 
         function displayCVAnalysis(data) {
+            console.log('🔍 Displaying CV analysis data:', data);
+            
             const resultsDiv = document.getElementById('cv-analysis-results');
             const contentDiv = document.getElementById('cv-analysis-content');
             
-            let html = '';
+            if (!data || typeof data !== 'object') {
+                console.log('❌ No valid CV analysis data provided');
+                contentDiv.innerHTML = '<div class="alert alert-warning">No analysis data received from server.</div>';
+                resultsDiv.classList.remove('hidden');
+                return;
+            }
             
-            if (data.analysis) {
+            let html = '';
+            let hasAnyData = false;
+            
+            // Check for analysis summary
+            if (data.analysis && data.analysis.trim()) {
+                hasAnyData = true;
                 html += `
                     <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--info);">
                         <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">📊 Analysis Summary</h4>
-                        <p style="color: var(--text-secondary);">${data.analysis}</p>
+                        <p style="color: var(--text-secondary); white-space: pre-wrap;">${data.analysis}</p>
                     </div>
                 `;
             }
             
-            if (data.skills && data.skills.length > 0) {
+            // Check for skills
+            if (data.skills && Array.isArray(data.skills) && data.skills.length > 0) {
+                hasAnyData = true;
                 html += `
                     <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--success);">
                         <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">🛠️ Extracted Skills</h4>
@@ -1805,30 +1830,66 @@
                 `;
             }
             
-            if (data.experience) {
+            // Check for experience
+            if (data.experience && data.experience.trim()) {
+                hasAnyData = true;
                 html += `
                     <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--warning);">
                         <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">💼 Experience</h4>
-                        <p style="color: var(--text-secondary);">${data.experience}</p>
+                        <p style="color: var(--text-secondary); white-space: pre-wrap;">${data.experience}</p>
                     </div>
                 `;
             }
             
-            if (data.education) {
+            // Check for education
+            if (data.education && data.education.trim()) {
+                hasAnyData = true;
                 html += `
                     <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--error);">
                         <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">🎓 Education</h4>
-                        <p style="color: var(--text-secondary);">${data.education}</p>
+                        <p style="color: var(--text-secondary); white-space: pre-wrap;">${data.education}</p>
                     </div>
                 `;
             }
             
-            if (!html) {
-                html = '<div class="alert alert-info">No analysis data available yet. Please upload a CV for analysis.</div>';
+            // Check for other possible fields that might contain data
+            const otherFields = ['summary', 'recommendations', 'qualifications', 'certifications'];
+            otherFields.forEach(field => {
+                if (data[field] && data[field].trim && data[field].trim()) {
+                    hasAnyData = true;
+                    html += `
+                        <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--info);">
+                            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">📋 ${field.charAt(0).toUpperCase() + field.slice(1)}</h4>
+                            <p style="color: var(--text-secondary); white-space: pre-wrap;">${data[field]}</p>
+                        </div>
+                    `;
+                }
+            });
+            
+            // If no recognizable data, show what we received for debugging
+            if (!hasAnyData) {
+                console.log('⚠️ No recognizable CV data fields found. Available fields:', Object.keys(data));
+                html = `
+                    <div class="alert alert-warning">
+                        <h4>CV Analysis Completed</h4>
+                        <p>The CV was processed successfully, but no structured data was extracted. This might be due to:</p>
+                        <ul style="margin: 1rem 0; padding-left: 2rem;">
+                            <li>The CV format might not be optimal for analysis</li>
+                            <li>The content might be in a format that's difficult to parse</li>
+                            <li>The backend analysis might need adjustment</li>
+                        </ul>
+                        <details style="margin-top: 1rem;">
+                            <summary style="cursor: pointer; font-weight: bold;">Show Raw Response (for debugging)</summary>
+                            <pre style="background: var(--surface-2); padding: 1rem; border-radius: var(--radius); margin-top: 0.5rem; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    </div>
+                `;
             }
             
             contentDiv.innerHTML = html;
             resultsDiv.classList.remove('hidden');
+            
+            console.log('✅ CV analysis display updated, hasData:', hasAnyData);
         }
 
         async function loadPreferences() {
