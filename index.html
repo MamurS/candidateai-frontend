@@ -1953,6 +1953,15 @@
             const location = document.getElementById('search-location').value;
             
             try {
+                // Ensure we have current user data
+                if (!currentUser) {
+                    try {
+                        currentUser = await makeAPICall('/auth/me');
+                    } catch (error) {
+                        console.log('Could not fetch current user data');
+                    }
+                }
+                
                 // Show loading
                 const resultsDiv = document.getElementById('job-search-results');
                 const contentDiv = document.getElementById('job-results-content');
@@ -1971,9 +1980,13 @@
                     const cvData = await makeAPICall('/cv/data');
                     if (cvData && (cvData.skills || cvData.experience || cvData.analysis)) {
                         cvProfile = {
+                            full_name: currentUser?.full_name || '',
+                            email: currentUser?.email || '',
                             skills: cvData.skills || [],
-                            experience: cvData.experience || '',
-                            education: cvData.education || '',
+                            experience: Array.isArray(cvData.experience) ? cvData.experience : 
+                                       (cvData.experience ? [cvData.experience] : []),
+                            education: Array.isArray(cvData.education) ? cvData.education : 
+                                      (cvData.education ? [cvData.education] : []),
                             analysis: cvData.analysis || ''
                         };
                         console.log('✅ CV profile loaded for job search');
@@ -1982,13 +1995,15 @@
                     console.log('⚠️ No CV data available for enhanced matching');
                 }
                 
-                // Build search request
+                // Build search request with proper cv_profile structure
                 const searchRequest = {
                     role: query,
                     cv_profile: cvProfile || {
+                        full_name: currentUser?.full_name || '',
+                        email: currentUser?.email || '',
                         skills: [],
-                        experience: '',
-                        education: '',
+                        experience: [],
+                        education: [],
                         analysis: ''
                     }
                 };
@@ -1997,7 +2012,18 @@
                     searchRequest.location = location;
                 }
                 
-                console.log('🔍 Job search request:', { ...searchRequest, cv_profile: cvProfile ? '[CV data included]' : '[No CV data]' });
+                console.log('🔍 Job search request:', {
+                    role: searchRequest.role,
+                    location: searchRequest.location,
+                    cv_profile: {
+                        full_name: searchRequest.cv_profile.full_name,
+                        email: searchRequest.cv_profile.email,
+                        skills: `[${searchRequest.cv_profile.skills.length} skills]`,
+                        experience: `[${searchRequest.cv_profile.experience.length} items]`,
+                        education: `[${searchRequest.cv_profile.education.length} items]`,
+                        analysis: searchRequest.cv_profile.analysis ? '[analysis included]' : '[no analysis]'
+                    }
+                });
                 
                 // Use sync search for immediate results
                 const response = await makeAPICall('/jobs/search/sync', {
