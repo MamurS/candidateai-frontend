@@ -46,7 +46,7 @@ Then open http://localhost:8000
 ## 🔗 Backend Integration
 
 This frontend seamlessly integrates with the CandidateAI backend:
-- **API Base**: `https://candidate-backend-6l1l.onrender.com`
+- **API Base**: `https://candidate-backend-4qq2.onrender.com`
 - **Authentication**: JWT tokens with automatic refresh
 - **File Upload**: Direct CV upload with progress tracking
 - **Real-time Search**: Instant job matching results
