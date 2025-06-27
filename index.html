@@ -1302,16 +1302,36 @@
                 const response = await fetch(url, { ...finalOptions, signal: controller.signal });
                 clearTimeout(timeoutId);
                 console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries([...response.headers.entries()]));
                 
-                const data = await response.json();
-                console.log('Response data:', data);
+                let data;
+                try {
+                    data = await response.json();
+                    console.log('Response data:', data);
+                } catch (jsonError) {
+                    console.log('Failed to parse JSON response:', jsonError);
+                    data = { detail: `Server returned ${response.status}: ${response.statusText}` };
+                }
                 
                 if (!response.ok) {
                     let errorMessage = 'Request failed';
                     
-                    if (data.detail) {
+                    // Handle specific HTTP status codes
+                    if (response.status === 500) {
+                        errorMessage = 'Server error: Backend configuration issue detected. This appears to be an email/SMTP authentication problem on the server side.';
+                        console.error('🚨 Server Error (500):', data);
+                        console.error('💡 Likely cause: Backend email credentials need to be updated in Render environment variables.');
+                    } else if (response.status === 422) {
+                        // Handle validation errors
+                        if (data.detail && Array.isArray(data.detail)) {
+                            errorMessage = data.detail.map(err => 
+                                `${err.loc ? err.loc.join('.') : 'Field'}: ${err.msg}`
+                            ).join(', ');
+                        } else if (data.detail) {
+                            errorMessage = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+                        }
+                    } else if (data.detail) {
                         if (Array.isArray(data.detail)) {
-                            // Handle validation errors
                             errorMessage = data.detail.map(err => 
                                 `${err.loc ? err.loc.join('.') : 'Field'}: ${err.msg}`
                             ).join(', ');
