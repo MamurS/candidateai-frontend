@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CandidateAI - Find Your Perfect Job</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Modern Color System - ShadCN Inspired */
+            --background: 220 14% 96%;
+            --foreground: 220 13% 9%;
+            --muted: 220 14% 96%;
+            --muted-foreground: 220 8% 46%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 220 13% 9%;
+            --card: 0 0% 100%;
+            --card-foreground: 220 13% 9%;
+            --border: 220 13% 91%;
+            --input: 220 13% 91%;
+            --primary: 221 83% 53%;
+            --primary-foreground: 210 40% 98%;
+            --secondary: 220 14% 96%;
+            --secondary-foreground: 220 9% 46%;
+            --accent: 220 14% 96%;
+            --accent-foreground: 220 9% 46%;
+            --destructive: 0 84% 60%;
+            --destructive-foreground: 210 40% 98%;
+            --ring: 221 83% 53%;
+            --success: 142 71% 45%;
+            --warning: 38 92% 50%;
+            --info: 199 89% 48%;
+            
+            /* Enhanced Gradients */
+            --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(262 83% 58%) 50%, hsl(300 76% 60%) 100%);
+            --gradient-secondary: linear-gradient(135deg, hsl(var(--info)) 0%, hsl(var(--primary)) 100%);
+            --gradient-surface: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(220 14% 98%) 100%);
+            --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            
+            /* Shadows - Enhanced */
+            --shadow-sm: 0 1px 2px 0 hsl(220 13% 9% / 0.05);
+            --shadow: 0 1px 3px 0 hsl(220 13% 9% / 0.1), 0 1px 2px -1px hsl(220 13% 9% / 0.1);
+            --shadow-md: 0 4px 6px -1px hsl(220 13% 9% / 0.1), 0 2px 4px -2px hsl(220 13% 9% / 0.1);
+            --shadow-lg: 0 10px 15px -3px hsl(220 13% 9% / 0.1), 0 4px 6px -4px hsl(220 13% 9% / 0.1);
+            --shadow-xl: 0 20px 25px -5px hsl(220 13% 9% / 0.1), 0 8px 10px -6px hsl(220 13% 9% / 0.1);
+            --shadow-2xl: 0 25px 50px -12px hsl(220 13% 9% / 0.25);
+            --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            
+            /* Spacing Scale */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --space-10: 2.5rem;
+            --space-12: 3rem;
+            --space-16: 4rem;
+            --space-20: 5rem;
+            
+            /* Animation Variables */
+            --animate-in: slideInFromBottom 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            --animate-out: slideOutToBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: hsl(var(--foreground));
+            background: hsl(var(--background));
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-feature-settings: 'rlig' 1, 'calt' 1;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.02;
+            background-image: 
+                radial-gradient(circle at 25% 25%, hsl(var(--muted-foreground)) 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, hsl(var(--muted-foreground)) 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            z-index: -1;
+        }
+
+        .background-pattern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at top, hsl(var(--primary) / 0.02) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, hsl(262 83% 58% / 0.02) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-8);
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: var(--space-16);
+            animation: var(--animate-in);
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--gradient-glass);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid hsl(var(--primary-foreground) / 0.2);
+            box-shadow: var(--shadow-glow), var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-glass);
+            opacity: 0.5;
+            z-index: -1;
+        }
+
+        .logo h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            color: hsl(var(--muted-foreground));
+            font-size: 1.25rem;
+            font-weight: 500;
+            max-width: 600px;
+            margin: 0 auto;
+            letter-spacing: -0.01em;
+        }
+
+        /* Auth Container Styles */
+        .auth-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: hsl(var(--card) / 0.95);
+            backdrop-filter: blur(32px);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-2xl), 0 0 0 1px hsl(var(--border) / 0.3);
+            border: 1px solid hsl(var(--border) / 0.5);
+            overflow: hidden;
+            animation: var(--animate-in);
+            position: relative;
+        }
+
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent);
+        }
+
+        /* Main App Container */
+        .main-app {
+            background: hsl(var(--card) / 0.95);
+            backdrop-filter: blur(32px);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-2xl), 0 0 0 1px hsl(var(--border) / 0.3);
+            border: 1px solid hsl(var(--border) / 0.5);
+            overflow: hidden;
+            animation: var(--animate-in);
+            position: relative;
+        }
+
+        .main-app::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent);
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: hsl(var(--muted) / 0.3);
+            border-bottom: 1px solid hsl(var(--border));
+            padding: var(--space-2);
+            gap: var(--space-1);
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            border-radius: var(--radius-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .nav-tab::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius-md);
+            background: hsl(var(--primary) / 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-tab.active {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            box-shadow: var(--shadow), 0 0 0 1px hsl(var(--primary) / 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-tab.active::before {
+            opacity: 1;
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+            transform: translateY(-1px);
+        }
+
+        .nav-tab:hover:not(.active)::before {
+            opacity: 0.5;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            min-height: 500px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: var(--space-8);
+            background: hsl(var(--muted) / 0.3);
+            border-radius: var(--radius-lg);
+            padding: var(--space-1);
+            backdrop-filter: blur(8px);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            border-radius: var(--radius-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-tab::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius-md);
+            background: hsl(var(--primary) / 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .auth-tab.active {
+            color: hsl(var(--primary-foreground));
+            background: hsl(var(--primary));
+            box-shadow: var(--shadow), 0 0 0 1px hsl(var(--primary) / 0.2);
+            transform: translateY(-1px);
+        }
+
+        .auth-tab.active::before {
+            opacity: 1;
+        }
+
+        .auth-tab:hover:not(.active) {
+            color: hsl(var(--foreground));
+            background: hsl(var(--accent));
+            transform: translateY(-1px);
+        }
+
+        .auth-tab:hover:not(.active)::before {
+            opacity: 0.5;
+        }
+
+        .auth-section {
+            padding: var(--space-8);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-6);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--space-2);
+            font-weight: 500;
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+            letter-spacing: -0.01em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: hsl(var(--background));
+            font-family: inherit;
+            color: hsl(var(--foreground));
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: hsl(var(--muted-foreground));
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+            background: hsl(var(--card));
+        }
+
+        .form-group input:hover:not(:focus),
+        .form-group select:hover:not(:focus),
+        .form-group textarea:hover:not(:focus) {
+            border-color: hsl(var(--border) / 0.8);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            border: none;
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            box-shadow: var(--shadow), 0 1px 0 hsl(var(--primary) / 0.3);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, hsl(var(--primary-foreground) / 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg), 0 4px 12px hsl(var(--primary) / 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow), 0 2px 8px hsl(var(--primary) / 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary {
+            background: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+            box-shadow: var(--shadow), 0 1px 0 hsl(var(--secondary) / 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: var(--shadow-lg), 0 4px 12px hsl(var(--secondary) / 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: hsl(var(--foreground));
+            border: 1px solid hsl(var(--border));
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-outline::before {
+            background: hsl(var(--accent) / 0.5);
+        }
+
+        .btn-outline:hover {
+            background: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+            border-color: hsl(var(--border) / 0.8);
+            box-shadow: var(--shadow);
+        }
+
+        .alert {
+            padding: var(--space-4);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-6);
+            border: 1px solid;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            animation: slideInDown 0.3s ease-out;
+            box-shadow: var(--shadow-sm);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .alert-success {
+            background: hsl(var(--success) / 0.1);
+            color: hsl(var(--success));
+            border-color: hsl(var(--success) / 0.3);
+        }
+
+        .alert-error {
+            background: hsl(var(--destructive) / 0.1);
+            color: hsl(var(--destructive));
+            border-color: hsl(var(--destructive) / 0.3);
+        }
+
+        .alert-info {
+            background: hsl(var(--info) / 0.1);
+            color: hsl(var(--info));
+            border-color: hsl(var(--info) / 0.3);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--surface-3);
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .card {
+            background: var(--gradient-surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid hsl(var(--border) / 0.5);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: hsl(var(--border) / 0.8);
+        }
+
+        .card-header {
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: hsl(var(--foreground));
+            margin-bottom: var(--space-1);
+            letter-spacing: -0.01em;
+        }
+
+        .card-description {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+
+        .stat-card {
+            background: var(--gradient-surface);
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            border: 1px solid hsl(var(--border) / 0.5);
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: hsl(var(--border) / 0.8);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: var(--space-2);
+            letter-spacing: -0.01em;
+        }
+
+        .job-card {
+            border: 1px solid hsl(var(--border) / 0.5);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-4);
+            background: var(--gradient-surface);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-secondary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .job-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .job-card:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-4px);
+            border-color: hsl(var(--border) / 0.8);
+        }
+
+        .job-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-4);
+        }
+
+        .job-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            margin-bottom: var(--space-2);
+            letter-spacing: -0.01em;
+        }
+
+        .job-company {
+            color: hsl(var(--muted-foreground));
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .match-score {
+            background: hsl(var(--success));
+            color: hsl(var(--primary-foreground));
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-lg);
+            font-size: 0.75rem;
+            font-weight: 600;
+            position: absolute;
+            top: var(--space-4);
+            right: var(--space-4);
+            box-shadow: var(--shadow-sm);
+            letter-spacing: 0.025em;
+        }
+
+        .file-upload {
+            border: 2px dashed hsl(var(--border));
+            border-radius: var(--radius-lg);
+            padding: var(--space-12);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: hsl(var(--muted) / 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-upload::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .file-upload:hover::before,
+        .file-upload.dragover::before {
+            opacity: 0.03;
+        }
+
+        .file-upload:hover,
+        .file-upload.dragover {
+            border-color: hsl(var(--primary));
+            background: hsl(var(--primary) / 0.05);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-4);
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover .upload-icon {
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        /* Enhanced Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInFromBottom {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideOutToBottom {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Loading States */
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                hsl(var(--primary-foreground) / 0.1),
+                transparent
+            );
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .logo h1 {
+                font-size: 1.75rem;
+            }
+            
+            .auth-container {
+                margin: 1rem;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .tab-content {
+                padding: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .auth-section {
+                padding: 1.5rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-pattern"></div>
+    
+    <div class="container">
+        <div class="logo-section">
+            <div class="logo">
+                <div class="logo-icon">🎯</div>
+                <h1>CandidateAI</h1>
+            </div>
+            <p class="tagline">Find Your Perfect Job with AI-Powered Matching</p>
+        </div>
+
+        <!-- Authentication Container (shown when not logged in) -->
+        <div id="auth-container" class="auth-container">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="showLogin()">Sign In</button>
+                <button class="auth-tab" onclick="showRegister()">Sign Up</button>
+            </div>
+
+            <div id="login-section" class="auth-section">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn">
+                        <span>Sign In</span>
+                    </button>
+                </form>
+            </div>
+
+            <div id="register-section" class="auth-section hidden">
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-fullname">Full Name</label>
+                        <input type="text" id="register-fullname" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email Address</label>
+                        <input type="email" id="register-email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" placeholder="Minimum 8 characters" minlength="8" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-phone">Phone Number (Optional)</label>
+                        <input type="tel" id="register-phone" placeholder="Enter your phone number">
+                    </div>
+                    <button type="submit" class="btn">
+                        <span>Create Account</span>
+                    </button>
+                </form>
+            </div>
+
+            <div id="otp-section" class="auth-section hidden">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 0.5rem;">Verify Your Email</h3>
+                    <p style="color: var(--text-secondary);">We've sent a 6-digit code to your email address</p>
+                </div>
+                <form id="otp-form">
+                    <div class="form-group">
+                        <label for="otp-code">Verification Code</label>
+                        <input type="text" id="otp-code" placeholder="Enter 6-digit code" maxlength="6" minlength="6" required>
+                    </div>
+                    <button type="submit" class="btn">
+                        <span>Verify Account</span>
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="resendOTP()" style="margin-top: 1rem;">
+                        <span>Resend Code</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Application (shown when logged in) -->
+        <div id="main-app" class="main-app hidden">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('dashboard')">
+                    <span>📊 Dashboard</span>
+                </button>
+                <button class="nav-tab" onclick="switchTab('cv')">
+                    <span>📄 CV Analysis</span>
+                </button>
+                <button class="nav-tab" onclick="switchTab('preferences')">
+                    <span>⚙️ Preferences</span>
+                </button>
+                <button class="nav-tab" onclick="switchTab('jobs')">
+                    <span>💼 Job Search</span>
+                </button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard-tab" class="tab-content active">
+                <div class="card-header">
+                    <h2 class="card-title">Welcome Back!</h2>
+                    <p class="card-description">Here's your account overview and quick actions</p>
+                </div>
+                
+                <div id="dashboard-content">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading dashboard...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CV Analysis Tab -->
+            <div id="cv-tab" class="tab-content">
+                <div class="card-header">
+                    <h2 class="card-title">CV Analysis</h2>
+                    <p class="card-description">Upload your CV for AI-powered analysis and insights</p>
+                </div>
+                
+                <div class="file-upload" id="cv-upload-area">
+                    <input type="file" id="cv-file" accept=".pdf,.doc,.docx" style="display: none;">
+                    <div class="upload-icon">📄</div>
+                    <h3 style="margin-bottom: 0.5rem;">Upload Your CV</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Drag and drop your file here or click to browse</p>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">Supported formats: PDF, DOC, DOCX (Max 10MB)</p>
+                </div>
+                
+                <div id="cv-analysis-results" class="hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Analysis Results</h3>
+                            <p class="card-description">AI-powered insights from your CV</p>
+                        </div>
+                        <div id="cv-analysis-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Preferences Tab -->
+            <div id="preferences-tab" class="tab-content">
+                <div class="card-header">
+                    <h2 class="card-title">Work Preferences</h2>
+                    <p class="card-description">Set your job preferences to get better matches</p>
+                </div>
+                
+                <div class="card">
+                    <form id="preferences-form">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                            <div class="form-group">
+                                <label for="expected-salary">Expected Salary</label>
+                                <select id="expected-salary" required>
+                                    <option value="">Select salary range</option>
+                                    <option value="5000">$5,000</option>
+                                    <option value="10000">$10,000</option>
+                                    <option value="15000">$15,000</option>
+                                    <option value="20000">$20,000</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-type">Job Type</label>
+                                <select id="job-type" required>
+                                    <option value="">Select job type</option>
+                                    <option value="full-time">Full-time</option>
+                                    <option value="part-time">Part-time</option>
+                                    <option value="contract">Contract</option>
+                                    <option value="freelance">Freelance</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="remote-preference">Remote Work Preference</label>
+                                <select id="remote-preference" required>
+                                    <option value="">Select preference</option>
+                                    <option value="hybrid">Hybrid</option>
+                                    <option value="remote">Remote</option>
+                                    <option value="onsite">On-site</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="years-experience">Years of Experience</label>
+                                <select id="years-experience" required>
+                                    <option value="">Select experience</option>
+                                    <option value="0-2">0-2 years</option>
+                                    <option value="3-5">3-5 years</option>
+                                    <option value="5+">5+ years</option>
+                                    <option value="10+">10+ years</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="willing-relocate">Willing to Relocate</label>
+                                <select id="willing-relocate" required>
+                                    <option value="">Select option</option>
+                                    <option value="yes-with-support">Yes, with support</option>
+                                    <option value="yes-without-support">Yes, without support</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="notice-period">Notice Period</label>
+                                <select id="notice-period">
+                                    <option value="">Select notice period</option>
+                                    <option value="immediate">Immediate</option>
+                                    <option value="1-week">1 Week</option>
+                                    <option value="2-weeks">2 Weeks</option>
+                                    <option value="1-month">1 Month</option>
+                                    <option value="2-months">2 Months</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="desired-role">Desired Role</label>
+                            <input type="text" id="desired-role" placeholder="e.g., Senior Software Engineer" maxlength="255" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="industries">Industries of Interest</label>
+                            <textarea id="industries" placeholder="e.g., Technology, Healthcare, Finance..." maxlength="500" rows="3" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn">
+                            <span>Save Preferences</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Job Search Tab -->
+            <div id="jobs-tab" class="tab-content">
+                <div class="card-header">
+                    <h2 class="card-title">Job Search</h2>
+                    <p class="card-description">Find your perfect job with AI-powered matching</p>
+                </div>
+                
+                <div class="card">
+                    <form id="job-search-form">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 1rem; align-items: end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="search-query">Job Title or Keywords</label>
+                                <input type="text" id="search-query" placeholder="e.g., Software Engineer, Data Scientist" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="search-location">Location</label>
+                                <input type="text" id="search-location" placeholder="e.g., New York, NY">
+                            </div>
+                            <button type="submit" class="btn" style="width: auto; padding: 0.875rem 2rem;">
+                                <span>🔍 Search</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div id="job-search-results" class="hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Search Results</h3>
+                            <p class="card-description">Jobs matched to your profile</p>
+                        </div>
+                        <div id="job-results-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://candidate-backend-6l1l.onrender.com';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+        let pendingEmail = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 CandidateAI app loaded!');
+            console.log('Auth token:', authToken ? 'Present' : 'Not found');
+            
+            if (authToken) {
+                checkAuthStatus().then(() => {
+                    if (currentUser) {
+                        showMainApp();
+                    }
+                });
+            }
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            console.log('🔧 Setting up event listeners...');
+            
+            // Form submissions
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const otpForm = document.getElementById('otp-form');
+            const preferencesForm = document.getElementById('preferences-form');
+            const jobSearchForm = document.getElementById('job-search-form');
+            
+            console.log('Forms found:', {
+                login: !!loginForm,
+                register: !!registerForm,
+                otp: !!otpForm,
+                preferences: !!preferencesForm,
+                jobSearch: !!jobSearchForm
+            });
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+                console.log('✅ Login form listener attached');
+            }
+            if (registerForm) {
+                registerForm.addEventListener('submit', handleRegister);
+                console.log('✅ Register form listener attached');
+            }
+            if (otpForm) {
+                otpForm.addEventListener('submit', handleOTPVerification);
+                console.log('✅ OTP form listener attached');
+            }
+            if (preferencesForm) {
+                preferencesForm.addEventListener('submit', handlePreferences);
+                console.log('✅ Preferences form listener attached');
+            }
+            if (jobSearchForm) {
+                jobSearchForm.addEventListener('submit', handleJobSearch);
+                console.log('✅ Job search form listener attached');
+            }
+
+            // CV Upload
+            const cvUploadArea = document.getElementById('cv-upload-area');
+            const cvFileInput = document.getElementById('cv-file');
+            
+            cvUploadArea.addEventListener('click', () => cvFileInput.click());
+            cvFileInput.addEventListener('change', handleCVUpload);
+            
+            // Drag and drop
+            cvUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                cvUploadArea.classList.add('dragover');
+            });
+            
+            cvUploadArea.addEventListener('dragleave', () => {
+                cvUploadArea.classList.remove('dragover');
+            });
+            
+            cvUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                cvUploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    cvFileInput.files = files;
+                    handleCVUpload();
+                }
+            });
+        }
+
+        function switchTab(tabName) {
+            if (!authToken) return;
+            
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Load content based on tab
+            if (tabName === 'dashboard') {
+                loadDashboard();
+            } else if (tabName === 'preferences') {
+                loadPreferences();
+            } else if (tabName === 'cv') {
+                loadCVData();
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            loadDashboard();
+        }
+
+        function showAuthContainer() {
+            document.getElementById('auth-container').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+        }
+
+        async function makeAPICall(endpoint, options = {}) {
+            const url = `${API_BASE}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                }
+            };
+            
+            const finalOptions = { ...defaultOptions, ...options };
+            if (options.body && typeof options.body === 'object') {
+                finalOptions.body = JSON.stringify(options.body);
+            }
+
+            console.log('Making API call to:', url);
+            console.log('Options:', { ...finalOptions, body: finalOptions.body ? '[JSON]' : undefined });
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                
+                const response = await fetch(url, { ...finalOptions, signal: controller.signal });
+                clearTimeout(timeoutId);
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (!response.ok) {
+                    let errorMessage = 'Request failed';
+                    
+                    if (data.detail) {
+                        if (Array.isArray(data.detail)) {
+                            // Handle validation errors
+                            errorMessage = data.detail.map(err => 
+                                `${err.loc ? err.loc.join('.') : 'Field'}: ${err.msg}`
+                            ).join(', ');
+                        } else if (typeof data.detail === 'string') {
+                            errorMessage = data.detail;
+                        } else {
+                            errorMessage = JSON.stringify(data.detail);
+                        }
+                    } else if (data.message) {
+                        errorMessage = data.message;
+                    }
+                    
+                    console.error('API error:', errorMessage);
+                    throw new Error(errorMessage);
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API call failed:', error);
+                
+                // Handle different types of errors
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timeout. Please try again.');
+                } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    throw new Error('Network error. Please check your internet connection and try again.');
+                }
+                
+                throw error;
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            // Find the appropriate container to show the alert
+            let container = null;
+            
+            // Check if we're in the main app (after login)
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab && !document.getElementById('main-app').classList.contains('hidden')) {
+                container = activeTab;
+            } 
+            // Check if we're in auth container (before login)
+            else if (!document.getElementById('auth-container').classList.contains('hidden')) {
+                // Find the currently visible auth section
+                const visibleAuthSection = document.querySelector('.auth-section:not(.hidden)');
+                if (visibleAuthSection) {
+                    container = visibleAuthSection;
+                } else {
+                    // Fallback to auth container
+                    container = document.getElementById('auth-container');
+                }
+            }
+            
+            // Fallback to body if no suitable container found
+            if (!container) {
+                container = document.body;
+                alertDiv.style.position = 'fixed';
+                alertDiv.style.top = '20px';
+                alertDiv.style.left = '50%';
+                alertDiv.style.transform = 'translateX(-50%)';
+                alertDiv.style.zIndex = '9999';
+                alertDiv.style.minWidth = '300px';
+            }
+            
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function showLogin() {
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('register-section').classList.add('hidden');
+            document.getElementById('otp-section').classList.add('hidden');
+            
+            // Update auth tab states
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector('.auth-tab:first-child').classList.add('active');
+        }
+
+        function showRegister() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('register-section').classList.remove('hidden');
+            document.getElementById('otp-section').classList.add('hidden');
+            
+            // Update auth tab states
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector('.auth-tab:last-child').classList.add('active');
+        }
+
+        function showOTP() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('register-section').classList.add('hidden');
+            document.getElementById('otp-section').classList.remove('hidden');
+            
+            // Hide auth tabs when showing OTP
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.style.display = 'none');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await makeAPICall('/auth/login', {
+                    method: 'POST',
+                    body: { email, password }
+                });
+
+                authToken = response.data.access_token;
+                localStorage.setItem('authToken', authToken);
+                currentUser = response.data.user;
+                
+                showAlert('Welcome back! Login successful.', 'success');
+                setTimeout(() => {
+                    showMainApp();
+                }, 1000);
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            console.log('Registration form submitted');
+            
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const fullName = document.getElementById('register-fullname').value;
+            const phoneNumber = document.getElementById('register-phone').value;
+
+            console.log('Form data:', { email, fullName, password: password ? '[provided]' : '[missing]', phoneNumber });
+
+            // Disable submit button to prevent double submission
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Creating Account...</span>';
+            
+            // Show loading message
+            showAlert('Creating your account...', 'info');
+
+            try {
+                const body = { email, password, full_name: fullName };
+                if (phoneNumber) body.phone_number = phoneNumber;
+
+                console.log('Sending registration request:', { ...body, password: '[hidden]' });
+
+                await makeAPICall('/auth/register', {
+                    method: 'POST',
+                    body
+                });
+
+                pendingEmail = email;
+                showAlert('Registration successful! Please check your email for OTP.', 'success');
+                showOTP();
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAlert(error.message, 'error');
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Create Account</span>';
+            }
+        }
+
+        async function handleOTPVerification(e) {
+            e.preventDefault();
+            const otpCode = document.getElementById('otp-code').value;
+            const email = pendingEmail || document.getElementById('login-email').value;
+
+            try {
+                const response = await makeAPICall('/auth/verify-otp', {
+                    method: 'POST',
+                    body: { email, otp_code: otpCode }
+                });
+
+                authToken = response.access_token;
+                localStorage.setItem('authToken', authToken);
+                
+                showAlert('Account verified successfully! Welcome to CandidateAI!', 'success');
+                await checkAuthStatus();
+                setTimeout(() => {
+                    showMainApp();
+                }, 1500);
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function resendOTP() {
+            const email = pendingEmail || document.getElementById('login-email').value;
+            
+            try {
+                await makeAPICall(`/auth/resend-otp?email=${encodeURIComponent(email)}`, {
+                    method: 'POST'
+                });
+                showAlert('OTP resent successfully!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function checkAuthStatus() {
+            try {
+                currentUser = await makeAPICall('/auth/me');
+            } catch (error) {
+                localStorage.removeItem('authToken');
+                authToken = null;
+                showAlert('Session expired. Please login again.', 'error');
+                showAuthContainer();
+            }
+        }
+
+        async function loadDashboard() {
+            const dashboardContent = document.getElementById('dashboard-content');
+            
+            try {
+                if (!currentUser) {
+                    currentUser = await makeAPICall('/auth/me');
+                }
+                
+                dashboardContent.innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${currentUser.is_verified ? '✅' : '⏳'}</div>
+                            <div class="stat-label">Account Status</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${currentUser.has_uploaded_cv ? '✅' : '📄'}</div>
+                            <div class="stat-label">CV Uploaded</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${currentUser.has_preferences_data ? '✅' : '⚙️'}</div>
+                            <div class="stat-label">Preferences Set</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${new Date(currentUser.created_at).toLocaleDateString()}</div>
+                            <div class="stat-label">Member Since</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Profile Information</h3>
+                            <p class="card-description">Your account details</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                            <div>
+                                <p><strong>Name:</strong> ${currentUser.full_name}</p>
+                                <p><strong>Email:</strong> ${currentUser.email}</p>
+                                <p><strong>Phone:</strong> ${currentUser.phone_number || 'Not provided'}</p>
+                            </div>
+                            <div>
+                                <p><strong>CV Status:</strong> ${currentUser.has_uploaded_cv ? 'Uploaded ✅' : 'Not uploaded 📄'}</p>
+                                <p><strong>Preferences:</strong> ${currentUser.has_preferences_data ? 'Configured ✅' : 'Not set ⚙️'}</p>
+                                ${currentUser.last_login ? `<p><strong>Last Login:</strong> ${new Date(currentUser.last_login).toLocaleString()}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        ${!currentUser.has_uploaded_cv ? '<button class="btn" onclick="switchTab(\'cv\')" style="flex: 1;"><span>📄 Upload CV</span></button>' : ''}
+                        ${!currentUser.has_preferences_data ? '<button class="btn" onclick="switchTab(\'preferences\')" style="flex: 1;"><span>⚙️ Set Preferences</span></button>' : ''}
+                        <button class="btn btn-outline" onclick="logout()" style="flex: 1;"><span>🚪 Logout</span></button>
+                    </div>
+                `;
+            } catch (error) {
+                dashboardContent.innerHTML = `<div class="alert alert-error">Failed to load dashboard: ${error.message}</div>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            showAlert('You have been logged out successfully!', 'success');
+            showAuthContainer();
+        }
+
+
+
+        async function handleCVUpload() {
+            const fileInput = document.getElementById('cv-file');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch(`${API_BASE}/cv/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('CV upload failed');
+                }
+                
+                const result = await response.json();
+                showAlert('CV analyzed successfully!', 'success');
+                displayCVAnalysis(result);
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function loadCVData() {
+            try {
+                const cvData = await makeAPICall('/cv/data');
+                if (cvData && Object.keys(cvData).length > 0) {
+                    displayCVAnalysis(cvData);
+                }
+            } catch (error) {
+                console.log('No CV data available');
+            }
+        }
+
+        function displayCVAnalysis(data) {
+            const resultsDiv = document.getElementById('cv-analysis-results');
+            const contentDiv = document.getElementById('cv-analysis-content');
+            
+            let html = '';
+            
+            if (data.analysis) {
+                html += `
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--info);">
+                        <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">📊 Analysis Summary</h4>
+                        <p style="color: var(--text-secondary);">${data.analysis}</p>
+                    </div>
+                `;
+            }
+            
+            if (data.skills && data.skills.length > 0) {
+                html += `
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--success);">
+                        <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">🛠️ Extracted Skills</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            ${data.skills.map(skill => `<span style="background: var(--success); color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem;">${skill}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (data.experience) {
+                html += `
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--warning);">
+                        <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">💼 Experience</h4>
+                        <p style="color: var(--text-secondary);">${data.experience}</p>
+                    </div>
+                `;
+            }
+            
+            if (data.education) {
+                html += `
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--error);">
+                        <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">🎓 Education</h4>
+                        <p style="color: var(--text-secondary);">${data.education}</p>
+                    </div>
+                `;
+            }
+            
+            if (!html) {
+                html = '<div class="alert alert-info">No analysis data available yet. Please upload a CV for analysis.</div>';
+            }
+            
+            contentDiv.innerHTML = html;
+            resultsDiv.classList.remove('hidden');
+        }
+
+        async function loadPreferences() {
+            try {
+                const preferences = await makeAPICall('/work-preferences/');
+                if (preferences) {
+                    // Fill form with existing preferences
+                    document.getElementById('expected-salary').value = preferences.expected_salary;
+                    document.getElementById('job-type').value = preferences.job_type;
+                    document.getElementById('desired-role').value = preferences.desired_role;
+                    document.getElementById('industries').value = preferences.industries;
+                    document.getElementById('willing-relocate').value = preferences.willing_to_relocate;
+                    document.getElementById('remote-preference').value = preferences.remote_work_preference;
+                    document.getElementById('years-experience').value = preferences.years_of_experience;
+                    if (preferences.notice_period) {
+                        document.getElementById('notice-period').value = preferences.notice_period;
+                    }
+                }
+            } catch (error) {
+                console.log('No preferences found');
+            }
+        }
+
+        async function handlePreferences(e) {
+            e.preventDefault();
+            
+            const preferences = {
+                expected_salary: document.getElementById('expected-salary').value,
+                job_type: document.getElementById('job-type').value,
+                desired_role: document.getElementById('desired-role').value,
+                industries: document.getElementById('industries').value,
+                willing_to_relocate: document.getElementById('willing-relocate').value,
+                remote_work_preference: document.getElementById('remote-preference').value,
+                years_of_experience: document.getElementById('years-experience').value
+            };
+            
+            const noticePeriod = document.getElementById('notice-period').value;
+            if (noticePeriod) {
+                preferences.notice_period = noticePeriod;
+            }
+            
+            try {
+                await makeAPICall('/work-preferences/', {
+                    method: 'POST',
+                    body: preferences
+                });
+                showAlert('Work preferences saved successfully!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function handleJobSearch(e) {
+            e.preventDefault();
+            
+            const query = document.getElementById('search-query').value;
+            const location = document.getElementById('search-location').value;
+            
+            const searchRequest = {
+                role: query,
+                ...(location && { location })
+            };
+            
+            try {
+                // Show loading
+                const resultsDiv = document.getElementById('job-search-results');
+                const contentDiv = document.getElementById('job-results-content');
+                
+                contentDiv.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Searching for jobs...</p>
+                    </div>
+                `;
+                resultsDiv.classList.remove('hidden');
+                
+                // Use sync search for immediate results
+                const response = await makeAPICall('/jobs/search/sync', {
+                    method: 'POST',
+                    body: searchRequest
+                });
+                
+                displayJobResults(response);
+            } catch (error) {
+                showAlert(error.message, 'error');
+                document.getElementById('job-search-results').classList.add('hidden');
+            }
+        }
+
+        function displayJobResults(results) {
+            const contentDiv = document.getElementById('job-results-content');
+            
+            if (!results.matches || results.matches.length === 0) {
+                contentDiv.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                        <h3 style="margin-bottom: 0.5rem;">No Jobs Found</h3>
+                        <p>Try adjusting your search criteria or check back later for new opportunities.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="stats-grid" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-value">${results.total_matches}</div>
+                        <div class="stat-label">Job Matches</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.total_jobs_scraped}</div>
+                        <div class="stat-label">Total Jobs Searched</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.average_match_score ? results.average_match_score.toFixed(1) + '%' : 'N/A'}</div>
+                        <div class="stat-label">Average Match</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${(results.execution_time / 1000).toFixed(1)}s</div>
+                        <div class="stat-label">Search Time</div>
+                    </div>
+                </div>
+            `;
+            
+            results.matches.forEach(job => {
+                const matchColor = job.match_score >= 80 ? 'var(--success)' : 
+                                  job.match_score >= 60 ? 'var(--warning)' : 'var(--error)';
+                
+                html += `
+                    <div class="job-card">
+                        <div class="match-score" style="background: ${matchColor};">${job.match_score.toFixed(1)}%</div>
+                        <div class="job-card-header">
+                            <div>
+                                <h3 class="job-title">${job.job_title}</h3>
+                                <p class="job-company">🏢 ${job.company_name}</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                            <div><strong>📍 Location:</strong> ${job.location}</div>
+                            <div><strong>💰 Salary:</strong> ${job.salary || 'Not specified'}</div>
+                            <div><strong>📅 Posted:</strong> ${job.posted_date}</div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;">${job.job_summary}</p>
+                        ${job.job_url ? `
+                            <div style="display: flex; gap: 1rem;">
+                                <a href="${job.job_url}" target="_blank" class="btn" style="width: auto; padding: 0.5rem 1.5rem;">
+                                    <span>🔗 View Job Details</span>
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            contentDiv.innerHTML = html;
+        }
+
+
+    </script>
+</body>
+</html> 
