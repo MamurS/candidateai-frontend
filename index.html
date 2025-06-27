@@ -1891,11 +1891,6 @@
             const query = document.getElementById('search-query').value;
             const location = document.getElementById('search-location').value;
             
-            const searchRequest = {
-                role: query,
-                ...(location && { location })
-            };
-            
             try {
                 // Show loading
                 const resultsDiv = document.getElementById('job-search-results');
@@ -1904,10 +1899,44 @@
                 contentDiv.innerHTML = `
                     <div class="loading">
                         <div class="spinner"></div>
-                        <p>Searching for jobs...</p>
+                        <p>Getting your CV profile and searching for jobs...</p>
                     </div>
                 `;
                 resultsDiv.classList.remove('hidden');
+                
+                // Get CV profile first
+                let cvProfile = null;
+                try {
+                    const cvData = await makeAPICall('/cv/data');
+                    if (cvData && (cvData.skills || cvData.experience || cvData.analysis)) {
+                        cvProfile = {
+                            skills: cvData.skills || [],
+                            experience: cvData.experience || '',
+                            education: cvData.education || '',
+                            analysis: cvData.analysis || ''
+                        };
+                        console.log('✅ CV profile loaded for job search');
+                    }
+                } catch (cvError) {
+                    console.log('⚠️ No CV data available for enhanced matching');
+                }
+                
+                // Build search request
+                const searchRequest = {
+                    role: query,
+                    cv_profile: cvProfile || {
+                        skills: [],
+                        experience: '',
+                        education: '',
+                        analysis: ''
+                    }
+                };
+                
+                if (location) {
+                    searchRequest.location = location;
+                }
+                
+                console.log('🔍 Job search request:', { ...searchRequest, cv_profile: cvProfile ? '[CV data included]' : '[No CV data]' });
                 
                 // Use sync search for immediate results
                 const response = await makeAPICall('/jobs/search/sync', {
@@ -1916,6 +1945,11 @@
                 });
                 
                 displayJobResults(response);
+                
+                // Show tip about CV upload if no CV data was available
+                if (!cvProfile) {
+                    showAlert('💡 Tip: Upload your CV in the CV Analysis tab for better job matching!', 'info');
+                }
             } catch (error) {
                 showAlert(error.message, 'error');
                 document.getElementById('job-search-results').classList.add('hidden');
