@@ -1301,7 +1301,7 @@
 
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+                const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout for Render free tier
                 
                 const response = await fetch(url, { ...finalOptions, signal: controller.signal });
                 clearTimeout(timeoutId);
@@ -1512,12 +1512,47 @@
             document.querySelectorAll('.auth-tab').forEach(tab => tab.style.display = 'none');
         }
 
+        async function wakeUpServerForAuth() {
+            console.log('🚀 Waking up server for authentication...');
+            
+            try {
+                // Try multiple wake-up methods with longer timeout
+                const wakeupPromises = [
+                    fetch(`${API_BASE}/`, { method: 'GET', mode: 'no-cors' }),
+                    fetch(`${API_BASE}/docs`, { method: 'GET', mode: 'no-cors' }),
+                    fetch(`${API_BASE}/auth/me`, { method: 'GET', mode: 'no-cors' })
+                ];
+                
+                await Promise.allSettled(wakeupPromises);
+                
+                // Wait longer for server to fully wake up
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                console.log('✅ Server wake-up completed');
+            } catch (error) {
+                console.log('Wake-up process completed (errors expected)');
+            }
+        }
+
         async function handleLogin(e) {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
             try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Connecting...</span>';
+                
+                // First, try to wake up the server
+                showAlert('Waking up server... (this may take 15-20 seconds)', 'info');
+                await wakeUpServerForAuth();
+                
+                submitBtn.innerHTML = '<span>Signing in...</span>';
+                showAlert('Server ready! Signing you in...', 'info');
+                
                 const response = await makeAPICall('/auth/login', {
                     method: 'POST',
                     body: { email, password }
@@ -1533,6 +1568,9 @@
                 }, 1000);
             } catch (error) {
                 showAlert(error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             }
         }
 
@@ -1556,9 +1594,15 @@
             submitBtn.innerHTML = '<span>Creating Account...</span>';
             
             // Show loading message
-            showAlert('Creating your account...', 'info');
+            showAlert('Waking up server... (this may take 15-20 seconds)', 'info');
 
             try {
+                // Wake up server first
+                await wakeUpServerForAuth();
+                
+                showAlert('Server ready! Creating your account...', 'info');
+                submitBtn.innerHTML = '<span>Creating Account...</span>';
+                
                 const body = { email, password, full_name: fullName };
                 if (phoneNumber) body.phone_number = phoneNumber;
 
