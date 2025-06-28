@@ -1836,6 +1836,8 @@
 
         function displayCVAnalysis(data) {
             console.log('🔍 Displaying CV analysis data:', data);
+            console.log('🔍 Data keys:', Object.keys(data));
+            console.log('🔍 Data values preview:', Object.entries(data).map(([key, value]) => [key, Array.isArray(value) ? `Array(${value.length})` : typeof value === 'string' ? `String(${value.length} chars)` : typeof value]).slice(0, 10));
             
             const resultsDiv = document.getElementById('cv-analysis-results');
             const contentDiv = document.getElementById('cv-analysis-content');
@@ -1850,63 +1852,153 @@
             let html = '';
             let hasAnyData = false;
             
-            // Check for analysis summary
-            if (data.analysis && data.analysis.trim()) {
-                hasAnyData = true;
-                html += `
-                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--info);">
-                        <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">📊 Analysis Summary</h4>
-                        <p style="color: var(--text-secondary); white-space: pre-wrap;">${data.analysis}</p>
-                    </div>
-                `;
-            }
-            
-            // Check for skills
-            if (data.skills && Array.isArray(data.skills) && data.skills.length > 0) {
-                hasAnyData = true;
-                html += `
-                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--success);">
-                        <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">🛠️ Extracted Skills</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            ${data.skills.map(skill => `<span style="background: var(--success); color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem;">${skill}</span>`).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Check for experience
-            if (data.experience && data.experience.trim()) {
-                hasAnyData = true;
-                html += `
-                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--warning);">
-                        <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">💼 Experience</h4>
-                        <p style="color: var(--text-secondary); white-space: pre-wrap;">${data.experience}</p>
-                    </div>
-                `;
-            }
-            
-            // Check for education
-            if (data.education && data.education.trim()) {
-                hasAnyData = true;
-                html += `
-                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--error);">
-                        <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">🎓 Education</h4>
-                        <p style="color: var(--text-secondary); white-space: pre-wrap;">${data.education}</p>
-                    </div>
-                `;
-            }
-            
-            // Check for other possible fields that might contain data
-            const otherFields = ['summary', 'recommendations', 'qualifications', 'certifications'];
-            otherFields.forEach(field => {
-                if (data[field] && data[field].trim && data[field].trim()) {
+            // Define field mappings with flexible field names and display configs
+            const fieldMappings = [
+                {
+                    names: ['analysis', 'summary', 'analysis_summary', 'cv_analysis', 'overview'],
+                    icon: '📊',
+                    title: 'Analysis Summary',
+                    color: '--info',
+                    type: 'text'
+                },
+                {
+                    names: ['skills', 'technical_skills', 'skill_list', 'extracted_skills'],
+                    icon: '🛠️',
+                    title: 'Extracted Skills',
+                    color: '--success',
+                    type: 'array'
+                },
+                {
+                    names: ['experience', 'work_experience', 'professional_experience', 'career_history'],
+                    icon: '💼',
+                    title: 'Experience',
+                    color: '--warning',
+                    type: 'text_or_array'
+                },
+                {
+                    names: ['education', 'educational_background', 'qualifications', 'academic_background'],
+                    icon: '🎓',
+                    title: 'Education',
+                    color: '--error',
+                    type: 'text_or_array'
+                },
+                {
+                    names: ['certifications', 'certificates', 'professional_certifications'],
+                    icon: '🏆',
+                    title: 'Certifications',
+                    color: '--info',
+                    type: 'text_or_array'
+                },
+                {
+                    names: ['recommendations', 'suggestions', 'improvements'],
+                    icon: '💡',
+                    title: 'Recommendations',
+                    color: '--info',
+                    type: 'text'
+                }
+            ];
+
+            // Process each field mapping
+            fieldMappings.forEach(mapping => {
+                let fieldValue = null;
+                let fieldName = null;
+                
+                // Find the first matching field name in the data
+                for (const name of mapping.names) {
+                    if (data[name] !== undefined && data[name] !== null && data[name] !== '') {
+                        fieldValue = data[name];
+                        fieldName = name;
+                        break;
+                    }
+                }
+                
+                if (fieldValue) {
+                    console.log(`✅ Found field: ${fieldName} (${mapping.type})`, fieldValue);
+                    
+                    if (mapping.type === 'array' && Array.isArray(fieldValue) && fieldValue.length > 0) {
+                        hasAnyData = true;
+                        html += `
+                            <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(${mapping.color});">
+                                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">${mapping.icon} ${mapping.title}</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                    ${fieldValue.map(item => `<span style="background: var(${mapping.color}); color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem;">${item}</span>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else if (mapping.type === 'text' && typeof fieldValue === 'string' && fieldValue.trim()) {
+                        hasAnyData = true;
+                        html += `
+                            <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(${mapping.color});">
+                                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">${mapping.icon} ${mapping.title}</h4>
+                                <p style="color: var(--text-secondary); white-space: pre-wrap;">${fieldValue}</p>
+                            </div>
+                        `;
+                    } else if (mapping.type === 'text_or_array') {
+                        hasAnyData = true;
+                        if (Array.isArray(fieldValue) && fieldValue.length > 0) {
+                            html += `
+                                <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(${mapping.color});">
+                                    <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">${mapping.icon} ${mapping.title}</h4>
+                                    <ul style="color: var(--text-secondary); margin: 0; padding-left: 1.5rem;">
+                                        ${fieldValue.map(item => `<li style="margin-bottom: 0.5rem;">${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `;
+                        } else if (typeof fieldValue === 'string' && fieldValue.trim()) {
+                            html += `
+                                <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(${mapping.color});">
+                                    <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">${mapping.icon} ${mapping.title}</h4>
+                                    <p style="color: var(--text-secondary); white-space: pre-wrap;">${fieldValue}</p>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            });
+
+            // Check for any other fields that might contain useful data
+            Object.keys(data).forEach(key => {
+                const value = data[key];
+                // Skip if already processed by field mappings
+                const alreadyProcessed = fieldMappings.some(mapping => mapping.names.includes(key));
+                if (alreadyProcessed) return;
+                
+                // Skip common metadata fields
+                if (['id', 'user_id', 'created_at', 'updated_at', 'filename', 'file_size'].includes(key)) return;
+                
+                // Display any other non-empty fields
+                if (value && (
+                    (typeof value === 'string' && value.trim()) ||
+                    (Array.isArray(value) && value.length > 0) ||
+                    (typeof value === 'object' && Object.keys(value).length > 0)
+                )) {
+                    console.log(`✅ Found additional field: ${key}`, value);
                     hasAnyData = true;
-                    html += `
-                        <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--info);">
-                            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">📋 ${field.charAt(0).toUpperCase() + field.slice(1)}</h4>
-                            <p style="color: var(--text-secondary); white-space: pre-wrap;">${data[field]}</p>
-                        </div>
-                    `;
+                    
+                    if (Array.isArray(value)) {
+                        html += `
+                            <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--info);">
+                                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">📋 ${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}</h4>
+                                <ul style="color: var(--text-secondary); margin: 0; padding-left: 1.5rem;">
+                                    ${value.map(item => `<li style="margin-bottom: 0.5rem;">${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    } else if (typeof value === 'string') {
+                        html += `
+                            <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--info);">
+                                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">📋 ${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}</h4>
+                                <p style="color: var(--text-secondary); white-space: pre-wrap;">${value}</p>
+                            </div>
+                        `;
+                    } else if (typeof value === 'object') {
+                        html += `
+                            <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-2); border-radius: var(--radius); border-left: 4px solid var(--info);">
+                                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">📋 ${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}</h4>
+                                <pre style="color: var(--text-secondary); white-space: pre-wrap; font-size: 0.875rem;">${JSON.stringify(value, null, 2)}</pre>
+                            </div>
+                        `;
+                    }
                 }
             });
             
